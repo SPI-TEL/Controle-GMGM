@@ -235,9 +235,9 @@
 
         <!-- Pesquisar -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / Site / OS</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / OS / Obs</label>
           <div class="relative">
-            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Ativo, Município, Site..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
+            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Ativo, OS, Ação Vivo..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
@@ -289,7 +289,7 @@
             <i class="fa-solid fa-list-check text-vivo-purple"></i>
             <span>Detalhamento Operacional dos GMGs</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com localização de site estacionado e SLA de inoperância</p>
+          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com Nº da OS, Ação Vivo, localização do site e SLA de inoperância</p>
         </div>
 
         <div class="flex items-center space-x-3 text-xs">
@@ -315,7 +315,7 @@
               <th class="p-3">Coordenação</th>
               <th class="p-3">Situação</th>
               <th class="p-3">Potência (KVA)</th>
-              <th class="p-3">Status OS / Ação Vivo</th>
+              <th class="p-3">Status OS (Nº OS & Ação Vivo)</th>
               <th class="p-3">Previsão OS</th>
               <th class="p-3">Site Acoplado / Estacionado</th>
               <th class="p-3 text-center">Dias Inoperante</th>
@@ -438,7 +438,7 @@
           siteFinal = endClean;
         }
 
-        // Formatação da OS + Ação Vivo
+        // Formatação explícita do Status OS: Nº da OS + Ação Vivo
         let statusOSFinal = "-";
         let numOsClean = tratarValorVazio(rawNumOS);
         let acaoClean = tratarValorVazio(rawAcaoVivo);
