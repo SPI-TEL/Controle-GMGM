@@ -112,7 +112,7 @@
     </div>
   </header>
 
-  <!-- BANNER DE STATUS DA SINCRONIZAÇÃO (SEM A MENSAGEM DE SLA) -->
+  <!-- BANNER DE STATUS DA SINCRONIZAÇÃO -->
   <div class="max-w-[1700px] mx-auto px-4 mt-3">
     <div id="status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg p-2.5 px-4 flex items-center justify-between text-xs font-medium shadow-sm">
       <div class="flex items-center space-x-2">
@@ -191,7 +191,8 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <!-- Filtro DDD -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">DDD</label>
           <select id="filter-ddd" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -199,6 +200,19 @@
           </select>
         </div>
 
+        <!-- Filtro Potência KVA -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Potência (KVA)</label>
+          <select id="filter-porte" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
+            <option value="TODOS">Todas as Potências</option>
+            <option value="PEQUENO">Pequeno (< 10 KVA)</option>
+            <option value="MEDIO">Médio (10-15 KVA)</option>
+            <option value="GRANDE">Grande (20-33 KVA)</option>
+            <option value="CAMINHAO">Caminhão (> 100 KVA)</option>
+          </select>
+        </div>
+
+        <!-- Filtro Coordenador -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Coordenador / Área</label>
           <select id="filter-coord" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -206,6 +220,7 @@
           </select>
         </div>
 
+        <!-- Filtro Situação -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Situação</label>
           <select id="filter-situacao" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -218,10 +233,11 @@
           </select>
         </div>
 
+        <!-- Pesquisar -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / OS / Obs</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / Site / OS</label>
           <div class="relative">
-            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Digite Ativo, OS, Coordenador..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
+            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Ativo, Município, Site..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
@@ -273,7 +289,7 @@
             <i class="fa-solid fa-list-check text-vivo-purple"></i>
             <span>Detalhamento Operacional dos GMGs</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada da base de dados com SLA e Ação Vivo</p>
+          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com localização de site estacionado e SLA de inoperância</p>
         </div>
 
         <div class="flex items-center space-x-3 text-xs">
@@ -295,12 +311,13 @@
           <thead>
             <tr class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 border-b border-slate-200">
               <th class="p-3 pl-4">Ativo</th>
-              <th class="p-3">DDD</th>
+              <th class="p-3">Município / DDD</th>
               <th class="p-3">Coordenação</th>
               <th class="p-3">Situação</th>
               <th class="p-3">Potência (KVA)</th>
               <th class="p-3">Status OS / Ação Vivo</th>
               <th class="p-3">Previsão OS</th>
+              <th class="p-3">Site Acoplado / Estacionado</th>
               <th class="p-3 text-center">Dias Inoperante</th>
             </tr>
           </thead>
@@ -376,6 +393,7 @@
         };
 
         let rawAtivo = getVal(["ativo prisma", "ativo", "tag", "patrimonio", "codigo"]) || `GMG-${1000 + index}`;
+        let rawMunicipio = getVal(["municipio", "cidade ativo", "cidade"]) || "-";
         let rawDdd = getVal(["ddd", "uf"]) || "";
         let rawCoord = getVal(["coordenador", "coord", "gestor", "responsavel"]) || "-";
         let rawSituacao = getVal(["situacao", "situa", "status_geral"]) || "OPERACIONAL";
@@ -383,26 +401,42 @@
         let rawAcaoVivo = getVal(["acao vivo", "acao", "observacao gmg", "obs"]) || "";
         let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || "";
         let rawPrevisao = getVal(["previsao", "prev", "previsao_os"]) || "-";
+        let rawSiteEstacionado = getVal(["site acoplado", "site estacionado", "endereco site", "cidade site"]) || "";
+        let rawEndEstacionado = getVal(["endereco site estacionado", "endereco site"]) || "";
         let rawDias = getVal(["dias inoperante", "dias", "tempo"]) || "0";
 
-        // Filtro estrito do DDD: Apenas aceitar se for exclusivamente numérico (ex: 12, 14, 15, 16, 17, 18, 19). Exclui "SP".
+        // Filtro estrito do DDD (Exclui "SP")
         let dddClean = String(rawDdd).replace(/[^0-9]/g, "").trim();
         if (!dddClean || dddClean === "") {
-          return null; // Descarta registros sem DDD numérico (ex: DDD SP)
+          return null;
         }
 
-        // Limpeza de KVA
+        // Limpeza de KVA e Classificação por Categoria
         let kvaNum = parseFloat(String(rawKva).replace(/[^0-9.,]/g, "").replace(",", ".")) || 15;
         
         let porteKva = "";
-        if (kvaNum < 10) porteKva = "<10 KVA (Pequeno)";
-        else if (kvaNum >= 10 && kvaNum <= 15) porteKva = "10-15 KVA (Médio)";
-        else if (kvaNum >= 20 && kvaNum <= 33) porteKva = "20-33 KVA (Grande)";
-        else if (kvaNum > 100) porteKva = ">100 KVA (Caminhão)";
-        else porteKva = `${kvaNum} KVA`;
+        let categoriaPorte = "";
+        if (kvaNum < 10) { porteKva = "<10 KVA (Pequeno)"; categoriaPorte = "PEQUENO"; }
+        else if (kvaNum >= 10 && kvaNum <= 15) { porteKva = "10-15 KVA (Médio)"; categoriaPorte = "MEDIO"; }
+        else if (kvaNum >= 20 && kvaNum <= 33) { porteKva = "20-33 KVA (Grande)"; categoriaPorte = "GRANDE"; }
+        else if (kvaNum > 100) { porteKva = ">100 KVA (Caminhão)"; categoriaPorte = "CAMINHAO"; }
+        else { porteKva = `${kvaNum} KVA`; categoriaPorte = "MEDIO"; }
 
         // Limpeza de Dias Inoperante
         let diasInop = parseInt(String(rawDias).replace(/[^0-9]/g, "")) || 0;
+
+        // Formatação do Site Estacionado
+        let siteFinal = "-";
+        let siteClean = tratarValorVazio(rawSiteEstacionado);
+        let endClean = tratarValorVazio(rawEndEstacionado);
+
+        if (siteClean !== "-" && endClean !== "-") {
+          siteFinal = `${siteClean} - ${endClean}`;
+        } else if (siteClean !== "-") {
+          siteFinal = siteClean;
+        } else if (endClean !== "-") {
+          siteFinal = endClean;
+        }
 
         // Formatação da OS + Ação Vivo
         let statusOSFinal = "-";
@@ -430,17 +464,20 @@
 
         return {
           ativo: tratarValorVazio(rawAtivo),
+          municipio: tratarValorVazio(rawMunicipio),
           ddd: dddClean,
           coordenacao: tratarValorVazio(rawCoord),
           situacao: sitPadrao,
           ehDescarte: ehDescarte,
           kvaNum: kvaNum,
           porteKva: porteKva,
+          categoriaPorte: categoriaPorte,
           statusOS: statusOSFinal,
           previsaoOS: tratarValorVazio(rawPrevisao),
+          siteEstacionado: siteFinal,
           diasInoperante: diasInop
         };
-      }).filter(item => item !== null); // Remove os nulos (DDD SP descartado)
+      }).filter(item => item !== null);
 
       preencherOpcoesFiltros();
       aplicarFiltros();
@@ -473,6 +510,7 @@
 
     function aplicarFiltros() {
       const fDDD = document.getElementById("filter-ddd").value;
+      const fPorte = document.getElementById("filter-porte").value;
       const fCoord = document.getElementById("filter-coord").value;
       const fSituacao = document.getElementById("filter-situacao").value;
       const fSearch = document.getElementById("filter-search").value.toLowerCase();
@@ -482,15 +520,18 @@
         if (fApenasAtiva && item.ehDescarte) return false;
 
         const matchDDD = (fDDD === "TODOS" || item.ddd === fDDD);
+        const matchPorte = (fPorte === "TODOS" || item.categoriaPorte === fPorte);
         const matchCoord = (fCoord === "TODOS" || item.coordenacao === fCoord);
         const matchSit = (fSituacao === "TODOS" || item.situacao === fSituacao);
         
         const matchSearch = fSearch === "" || 
           item.ativo.toLowerCase().includes(fSearch) ||
+          item.municipio.toLowerCase().includes(fSearch) ||
           item.coordenacao.toLowerCase().includes(fSearch) ||
+          item.siteEstacionado.toLowerCase().includes(fSearch) ||
           item.statusOS.toLowerCase().includes(fSearch);
 
-        return matchDDD && matchCoord && matchSit && matchSearch;
+        return matchDDD && matchPorte && matchCoord && matchSit && matchSearch;
       });
 
       atualizarKPIs();
@@ -501,6 +542,7 @@
 
     function limparFiltros() {
       document.getElementById("filter-ddd").value = "TODOS";
+      document.getElementById("filter-porte").value = "TODOS";
       document.getElementById("filter-coord").value = "TODOS";
       document.getElementById("filter-situacao").value = "TODOS";
       document.getElementById("filter-search").value = "";
@@ -645,7 +687,7 @@
       if (filteredData.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="8" class="text-center py-8 text-slate-400 font-medium">
+            <td colspan="9" class="text-center py-8 text-slate-400 font-medium">
               Nenhum equipamento encontrado com os filtros selecionados.
             </td>
           </tr>
@@ -678,12 +720,13 @@
 
         tr.innerHTML = `
           <td class="p-3 pl-4 font-bold text-slate-800">${item.ativo}</td>
-          <td class="p-3 font-semibold text-slate-600">DDD ${item.ddd}</td>
+          <td class="p-3 font-semibold text-slate-700">${item.municipio} <span class="text-[10px] text-slate-400 font-normal">(DDD ${item.ddd})</span></td>
           <td class="p-3 text-slate-700">${item.coordenacao}</td>
           <td class="p-3 ${sitClass}">${item.situacao}</td>
           <td class="p-3 text-slate-600 font-medium">${item.porteKva}</td>
           <td class="p-3 text-slate-700 font-mono text-[11px]">${item.statusOS}</td>
           <td class="p-3 text-slate-600">${item.previsaoOS}</td>
+          <td class="p-3 text-slate-600 text-[11px] font-medium">${item.siteEstacionado}</td>
           <td class="p-3 text-center">${badgeDias}</td>
         `;
 
@@ -697,9 +740,9 @@
         return;
       }
 
-      let csv = "Ativo,DDD,Coordenacao,Situacao,Porte_KVA,Status_OS,Previsao_OS,Dias_Inoperante\n";
+      let csv = "Ativo,Municipio,DDD,Coordenacao,Situacao,Porte_KVA,Status_OS,Previsao_OS,Site_Estacionado,Dias_Inoperante\n";
       filteredData.forEach(row => {
-        csv += `"${row.ativo}","${row.ddd}","${row.coordenacao}","${row.situacao}","${row.porteKva}","${row.statusOS}","${row.previsaoOS}","${row.diasInoperante}"\n`;
+        csv += `"${row.ativo}","${row.municipio}","${row.ddd}","${row.coordenacao}","${row.situacao}","${row.porteKva}","${row.statusOS}","${row.previsaoOS}","${row.siteEstacionado}","${row.diasInoperante}"\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
