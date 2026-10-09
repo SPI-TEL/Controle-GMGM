@@ -44,10 +44,14 @@
 
   <style>
     body { background-color: #F8FAFC; color: #1E293B; }
-    .status-text-inoperante { color: #DC2626; font-weight: 700; }
-    .status-text-operacional { color: #16A34A; font-weight: 700; }
-    .status-text-emprestado { color: #D97706; font-weight: 700; }
     
+    /* Destaque de texto colorido para Situação */
+    .status-text-inoperante { color: #DC2626; font-weight: 800; }
+    .status-text-operacional { color: #16A34A; font-weight: 800; }
+    .status-text-emprestado { color: #D97706; font-weight: 800; }
+    .status-text-descarte { color: #64748B; font-weight: 700; }
+    
+    /* Badges de SLA de Inoperância */
     .badge-dias-verde { background-color: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
     .badge-dias-amarelo { background-color: #FEF9C3; color: #A16207; border: 1px solid #FDE047; }
     .badge-dias-vermelho { background-color: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
@@ -58,11 +62,11 @@
 </head>
 <body class="font-sans antialiased pb-12">
 
-  <!-- CABEÇALHO ESCURO (PADRÃO REFERÊNCIA) -->
+  <!-- CABEÇALHO ESCURO (#0B132B) -->
   <header class="bg-vivo-darkNavy text-white shadow-xl border-b border-slate-800">
     <div class="max-w-[1700px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       
-      <!-- Lado Esquerdo: Ícone + Título + Tag -->
+      <!-- Lado Esquerdo: Ícone + Título + Badge Live -->
       <div class="flex items-center space-x-3">
         <div class="bg-sky-500/20 p-2.5 rounded-lg border border-sky-400/30 text-sky-400">
           <i class="fa-solid font-bold fa-rotate-left text-xl"></i>
@@ -82,9 +86,9 @@
         </div>
       </div>
 
-      <!-- Lado Direito: Métricas Rápidas & Botões de Ação -->
-      <div class="flex items-center space-x-4">
-        <div class="text-right hidden sm:block">
+      <!-- Lado Direito: Ações e Sincronização -->
+      <div class="flex items-center space-x-3">
+        <div class="text-right hidden sm:block mr-2">
           <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Última Sincronização</span>
           <span id="sync-time" class="text-xs font-mono font-semibold text-slate-200">--:--:--</span>
         </div>
@@ -108,32 +112,32 @@
     </div>
   </header>
 
-  <!-- BANNER DE STATUS / AVISO -->
+  <!-- AVISO DE STATUS -->
   <div class="max-w-[1700px] mx-auto px-4 mt-3">
     <div id="status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg p-2.5 px-4 flex items-center justify-between text-xs font-medium shadow-sm">
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-circle-notch fa-spin text-emerald-600 hidden" id="banner-spinner"></i>
         <i class="fa-solid fa-circle-check text-emerald-600" id="banner-check"></i>
-        <span id="banner-message">Sincronizado com a Planilha Google Sheets em tempo real.</span>
+        <span id="banner-message">Conectado à planilha Google Sheets em tempo real.</span>
       </div>
       <span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-0.5 rounded-full text-[11px]">
-        Objetivo: Redução de Estouro de SLA & Trataiva de Justificativas
+        Objetivo: Redução de Estouro de SLA & Tratativa de Justificativas
       </span>
     </div>
   </div>
 
   <main class="max-w-[1700px] mx-auto px-4 mt-4 space-y-4">
 
-    <!-- PAINEL DE METRICAS (KPIs) -->
+    <!-- METRICAS DE FROTA (KPIS) -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-vivo-purple">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total de GMGs</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Frota Ativa</span>
           <i class="fa-solid fa-bolt text-vivo-purple text-lg"></i>
         </div>
         <div class="mt-2 flex items-baseline justify-between">
           <span class="text-3xl font-extrabold text-slate-800" id="kpi-total">0</span>
-          <span class="text-xs font-semibold text-slate-400">100% da Frota</span>
+          <span class="text-xs font-semibold text-slate-400" id="kpi-total-sub">Frota em Uso</span>
         </div>
       </div>
 
@@ -171,21 +175,26 @@
       </div>
     </div>
 
-    <!-- BARRA DE FILTROS -->
+    <!-- FILTROS -->
     <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
       <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
         <h2 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
           <i class="fa-solid fa-filter text-vivo-purple"></i>
-          <span>Filtros e Parâmetros de Pesquisa</span>
+          <span>Filtros Operacionais</span>
         </h2>
-        <button onclick="limparFiltros()" class="text-xs font-semibold text-vivo-purple hover:underline flex items-center space-x-1">
-          <i class="fa-solid fa-rotate-left"></i>
-          <span>Limpar Filtros</span>
-        </button>
+        <div class="flex items-center space-x-4">
+          <label class="flex items-center space-x-2 text-xs font-semibold text-slate-600 cursor-pointer">
+            <input type="checkbox" id="filter-apenas-ativa" checked onchange="aplicarFiltros()" class="rounded text-vivo-purple focus:ring-vivo-purple">
+            <span>Ocultar Sucata / Duplicados / Remanejados</span>
+          </label>
+          <button onclick="limparFiltros()" class="text-xs font-semibold text-vivo-purple hover:underline flex items-center space-x-1">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Limpar Filtros</span>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Filtro DDD -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">DDD</label>
           <select id="filter-ddd" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -193,54 +202,53 @@
           </select>
         </div>
 
-        <!-- Filtro Coordenação -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Coordenação (Coordenador)</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Coordenador / Área</label>
           <select id="filter-coord" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
-            <option value="TODOS">Todas as Coordenações</option>
+            <option value="TODOS">Todos os Coordenadores</option>
           </select>
         </div>
 
-        <!-- Filtro Situação -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Situação Operational</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Situação</label>
           <select id="filter-situacao" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
             <option value="TODOS">Todas as Situações</option>
             <option value="OPERACIONAL">Operacional</option>
             <option value="INOPERANTE">Inoperante</option>
             <option value="EMPRESTADO">Emprestado</option>
+            <option value="SUCATA">Sucata</option>
+            <option value="REMANEJADO">Remanejado</option>
           </select>
         </div>
 
-        <!-- Pesquisa Geral -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Buscar por Ativo / OS</label>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / OS / Obs</label>
           <div class="relative">
-            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Digite Ativo, Coordenador, OS..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
+            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Digite Ativo, OS, Coordenador..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PAINEL DE GRÁFICOS (DDD + KVA COM PORCENTAGEM) -->
+    <!-- GRÁFICOS (DDD + PORCENTAGEM DE KVA) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       
-      <!-- Gráfico DDD (2 Colunas) -->
+      <!-- DDD (2 Colunas) -->
       <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
             <i class="fa-solid fa-chart-column text-vivo-purple"></i>
-            <span>Quantidade de GMGs Agrupado por DDD</span>
+            <span>Quantidade por DDD</span>
           </h3>
-          <span class="text-[11px] text-slate-400 font-medium">Visão por Situação</span>
+          <span class="text-[11px] text-slate-400 font-medium">Visão Operacional</span>
         </div>
         <div class="relative h-[260px] w-full">
           <canvas id="chart-ddd"></canvas>
         </div>
       </div>
 
-      <!-- Gráfico KVA (1 Coluna) com Porcentagem -->
+      <!-- KVA com Porcentagem (1 Coluna) -->
       <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
@@ -252,15 +260,14 @@
           <canvas id="chart-kva"></canvas>
         </div>
         
-        <!-- Legenda de Resumo de KVA com % -->
         <div id="kva-legend" class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-[11px]">
-          <!-- Gerado via JS -->
+          <!-- Inserido dinamicamente -->
         </div>
       </div>
 
     </div>
 
-    <!-- PAINEL DE DETALHAMENTO DAS ORDENS DE SERVIÇO & INOPERÂNCIA -->
+    <!-- TABELA DE DETALHAMENTO -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       
       <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
@@ -269,11 +276,10 @@
             <i class="fa-solid fa-list-check text-vivo-purple"></i>
             <span>Detalhamento Operacional dos GMGs</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com SLA de Inoperância e Previsão de OS</p>
+          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada da base de dados com SLA e Ação Vivo</p>
         </div>
 
         <div class="flex items-center space-x-3 text-xs">
-          <!-- Legenda de SLA de Inoperância -->
           <div class="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-[11px]">
             <span class="font-bold text-slate-600">SLA Inoperante:</span>
             <span class="px-2 py-0.5 rounded badge-dias-verde font-bold">&le;10d</span>
@@ -287,7 +293,6 @@
         </div>
       </div>
 
-      <!-- TABELA DE DADOS -->
       <div class="table-container">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -297,13 +302,13 @@
               <th class="p-3">Coordenação</th>
               <th class="p-3">Situação</th>
               <th class="p-3">Potência (KVA)</th>
-              <th class="p-3">Status OS / Nº OS</th>
+              <th class="p-3">Status OS / Ação Vivo</th>
               <th class="p-3">Previsão OS</th>
               <th class="p-3 text-center">Dias Inoperante</th>
             </tr>
           </thead>
           <tbody id="table-body" class="divide-y divide-slate-100 text-xs font-medium">
-            <!-- As linhas serão inseridas via JavaScript -->
+            <!-- Linhas inseridas via JavaScript -->
           </tbody>
         </table>
       </div>
@@ -320,7 +325,6 @@
     let chartDDDInstance = null;
     let chartKVAInstance = null;
 
-    // Registrar o plugin DataLabels globalmente para o Chart.js
     Chart.register(ChartDataLabels);
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -357,38 +361,37 @@
           console.error("Erro ao carregar CSV:", err);
           icon.classList.remove("fa-spin");
           spinner.classList.add("hidden");
-          msg.textContent = "Erro ao carregar dados. Verifique a conexão com a planilha.";
+          msg.textContent = "Erro ao conectar com a planilha online.";
         }
       });
     }
 
     function processarDados(data) {
       rawData = data.map((item, index) => {
-        // Normalização de chaves da planilha
+        // Função auxiliar para procurar colunas flexíveis
         const getVal = (keys) => {
           for (let k of Object.keys(item)) {
             const cleanKey = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             for (let searchKey of keys) {
-              if (cleanKey.includes(searchKey)) return item[k];
+              if (cleanKey === searchKey || cleanKey.includes(searchKey)) return item[k];
             }
           }
           return null;
         };
 
-        let rawAtivo = getVal(["ativo", "tag", "patrimonio", "codigo", "id", "gmg"]) || `GMG-${1000 + index}`;
+        let rawAtivo = getVal(["ativo prisma", "ativo", "tag", "patrimonio", "codigo"]) || `GMG-${1000 + index}`;
         let rawDdd = getVal(["ddd", "uf"]) || "SP";
-        let rawCoord = getVal(["coord", "gestor", "responsavel", "area"]) || "-";
-        let rawSituacao = getVal(["situac", "situa", "status_geral", "estado"]) || "Operacional";
-        let rawKva = getVal(["kva", "potencia", "cap"]) || "15";
-        let rawStatusOS = getVal(["status_os", "status os", "os", "ordem"]) || "-";
-        let rawNumOS = getVal(["num_os", "numero_os", "os_num", "n_os"]) || "";
-        let rawPrevisao = getVal(["prev", "previs", "data_prev", "previsao_os"]) || "-";
-        let rawDias = getVal(["dias", "dias_inoperante", "tempo"]) || "0";
+        let rawCoord = getVal(["coordenador", "coord", "gestor", "responsavel"]) || "-";
+        let rawSituacao = getVal(["situacao", "situa", "status_geral"]) || "OPERACIONAL";
+        let rawKva = getVal(["potencia", "kva", "cap"]) || "15";
+        let rawAcaoVivo = getVal(["acao vivo", "acao", "observacao gmg", "obs"]) || "";
+        let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || "";
+        let rawPrevisao = getVal(["previsao", "prev", "previsao_os"]) || "-";
+        let rawDias = getVal(["dias inoperante", "dias", "tempo"]) || "0";
 
-        // Limpeza de KVA Numérico
+        // Limpeza de KVA
         let kvaNum = parseFloat(String(rawKva).replace(/[^0-9.,]/g, "").replace(",", ".")) || 15;
         
-        // Categorização do Porte KVA
         let porteKva = "";
         if (kvaNum < 10) porteKva = "<10 KVA (Pequeno)";
         else if (kvaNum >= 10 && kvaNum <= 15) porteKva = "10-15 KVA (Médio)";
@@ -399,33 +402,39 @@
         // Limpeza de Dias Inoperante
         let diasInop = parseInt(String(rawDias).replace(/[^0-9]/g, "")) || 0;
 
-        // Formatação do Status OS com Número da OS se existir
-        let statusOsFormatado = tratarValorVazio(rawStatusOS);
-        if (rawNumOS && rawNumOS.trim() !== "" && rawNumOS.trim() !== "-") {
-          if (statusOsFormatado !== "-") {
-            statusOsFormatado = `#OS-${rawNumOS.trim()} - ${statusOsFormatado}`;
-          } else {
-            statusOsFormatado = `#OS-${rawNumOS.trim()}`;
-          }
+        // Formatação da OS + Ação Vivo
+        let statusOSFinal = "-";
+        let numOsClean = tratarValorVazio(rawNumOS);
+        let acaoClean = tratarValorVazio(rawAcaoVivo);
+
+        if (numOsClean !== "-" && acaoClean !== "-") {
+          statusOSFinal = `#OS-${numOsClean} - ${acaoClean}`;
+        } else if (numOsClean !== "-") {
+          statusOSFinal = `#OS-${numOsClean}`;
+        } else if (acaoClean !== "-") {
+          statusOSFinal = acaoClean;
         }
 
         // Padronização da Situação
-        let sitPadrao = "OPERACIONAL";
-        let sitLower = String(rawSituacao).toLowerCase();
-        if (sitLower.includes("inoperante") || sitLower.includes("quebrado") || sitLower.includes("manuten")) {
-          sitPadrao = "INOPERANTE";
-        } else if (sitLower.includes("emprest") || sitLower.includes("reserva")) {
-          sitPadrao = "EMPRESTADO";
-        }
+        let sitPadrao = String(rawSituacao).toUpperCase().trim();
+        let ehDescarte = false;
+
+        if (sitPadrao.includes("INOPERANTE")) sitPadrao = "INOPERANTE";
+        else if (sitPadrao.includes("OPERACIONAL")) sitPadrao = "OPERACIONAL";
+        else if (sitPadrao.includes("EMPRESTADO")) sitPadrao = "EMPRESTADO";
+        else if (sitPadrao.includes("SUCATA")) { sitPadrao = "SUCATA"; ehDescarte = true; }
+        else if (sitPadrao.includes("DUPLICADO")) { sitPadrao = "DUPLICADO"; ehDescarte = true; }
+        else if (sitPadrao.includes("REMANEJADO")) { sitPadrao = "REMANEJADO"; ehDescarte = true; }
 
         return {
           ativo: tratarValorVazio(rawAtivo),
           ddd: String(rawDdd).trim(),
           coordenacao: tratarValorVazio(rawCoord),
           situacao: sitPadrao,
+          ehDescarte: ehDescarte,
           kvaNum: kvaNum,
           porteKva: porteKva,
-          statusOS: statusOsFormatado,
+          statusOS: statusOSFinal,
           previsaoOS: tratarValorVazio(rawPrevisao),
           diasInoperante: diasInop
         };
@@ -438,7 +447,7 @@
     function tratarValorVazio(val) {
       if (!val || val === null || val === undefined) return "-";
       let s = String(val).trim();
-      if (s === "" || s.toLowerCase() === "n/a" || s.toLowerCase() === "null" || s === "nan") return "-";
+      if (s === "" || s.toLowerCase() === "n/a" || s.toLowerCase() === "null" || s === "nan" || s === "0") return "-";
       return s;
     }
 
@@ -446,15 +455,15 @@
       const selectDDD = document.getElementById("filter-ddd");
       const selectCoord = document.getElementById("filter-coord");
 
-      const ddds = [...new Set(rawData.map(d => d.ddd))].sort();
-      const coords = [...new Set(rawData.map(d => d.coordenacao))].sort();
+      const ddds = [...new Set(rawData.map(d => d.ddd))].filter(x => x !== "-").sort();
+      const coords = [...new Set(rawData.map(d => d.coordenacao))].filter(x => x !== "-").sort();
 
       selectDDD.innerHTML = '<option value="TODOS">Todos os DDDs</option>';
       ddds.forEach(d => {
         selectDDD.innerHTML += `<option value="${d}">DDD ${d}</option>`;
       });
 
-      selectCoord.innerHTML = '<option value="TODOS">Todas as Coordenações</option>';
+      selectCoord.innerHTML = '<option value="TODOS">Todos os Coordenadores</option>';
       coords.forEach(c => {
         selectCoord.innerHTML += `<option value="${c}">${c}</option>`;
       });
@@ -465,8 +474,11 @@
       const fCoord = document.getElementById("filter-coord").value;
       const fSituacao = document.getElementById("filter-situacao").value;
       const fSearch = document.getElementById("filter-search").value.toLowerCase();
+      const fApenasAtiva = document.getElementById("filter-apenas-ativa").checked;
 
       filteredData = rawData.filter(item => {
+        if (fApenasAtiva && item.ehDescarte) return false;
+
         const matchDDD = (fDDD === "TODOS" || item.ddd === fDDD);
         const matchCoord = (fCoord === "TODOS" || item.coordenacao === fCoord);
         const matchSit = (fSituacao === "TODOS" || item.situacao === fSituacao);
@@ -490,6 +502,7 @@
       document.getElementById("filter-coord").value = "TODOS";
       document.getElementById("filter-situacao").value = "TODOS";
       document.getElementById("filter-search").value = "";
+      document.getElementById("filter-apenas-ativa").checked = true;
       aplicarFiltros();
     }
 
@@ -516,8 +529,7 @@
 
     function renderizarGraficoDDD() {
       const ctx = document.getElementById("chart-ddd").getContext("2d");
-      
-      const ddds = [...new Set(filteredData.map(d => d.ddd))].sort();
+      const ddds = [...new Set(filteredData.map(d => d.ddd))].filter(x => x !== "-").sort();
 
       const dataOp = ddds.map(ddd => filteredData.filter(d => d.ddd === ddd && d.situacao === "OPERACIONAL").length);
       const dataIn = ddds.map(ddd => filteredData.filter(d => d.ddd === ddd && d.situacao === "INOPERANTE").length);
@@ -540,9 +552,7 @@
           maintainAspectRatio: false,
           plugins: {
             datalabels: {
-              display: function(context) {
-                return context.dataset.data[context.dataIndex] > 0;
-              },
+              display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
               color: '#FFFFFF',
               font: { weight: 'bold', size: 10 }
             },
@@ -560,10 +570,10 @@
       const ctx = document.getElementById("chart-kva").getContext("2d");
 
       const categorias = {
-        "<10 KVA (Pequeno)": filteredData.filter(d => d.kvaNum < 10).length,
-        "10-15 KVA (Médio)": filteredData.filter(d => d.kvaNum >= 10 && d.kvaNum <= 15).length,
-        "20-33 KVA (Grande)": filteredData.filter(d => d.kvaNum >= 20 && d.kvaNum <= 33).length,
-        ">100 KVA (Caminhão)": filteredData.filter(d => d.kvaNum > 100).length
+        "<10 KVA": filteredData.filter(d => d.kvaNum < 10).length,
+        "10-15 KVA": filteredData.filter(d => d.kvaNum >= 10 && d.kvaNum <= 15).length,
+        "20-33 KVA": filteredData.filter(d => d.kvaNum >= 20 && d.kvaNum <= 33).length,
+        ">100 KVA": filteredData.filter(d => d.kvaNum > 100).length
       };
 
       const labels = Object.keys(categorias);
@@ -595,8 +605,7 @@
               font: { weight: 'bold', size: 11 },
               formatter: (value) => {
                 if (value === 0 || total === 0) return '';
-                const pct = ((value / total) * 100).toFixed(1);
-                return `${pct}%`;
+                return `${((value / total) * 100).toFixed(1)}%`;
               }
             }
           },
@@ -604,7 +613,6 @@
         }
       });
 
-      // Atualizar Legenda e Percentuais abaixo do gráfico
       const legendContainer = document.getElementById("kva-legend");
       legendContainer.innerHTML = "";
 
@@ -617,7 +625,7 @@
           <div class="flex items-center justify-between p-1.5 rounded bg-slate-50 border border-slate-100">
             <div class="flex items-center space-x-1.5">
               <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${color}"></span>
-              <span class="font-semibold text-slate-600 truncate">${cat.split(' ')[0]}</span>
+              <span class="font-semibold text-slate-600 truncate">${cat}</span>
             </div>
             <span class="font-extrabold text-slate-800">${val} <span class="text-[10px] text-slate-400 font-normal">(${pct}%)</span></span>
           </div>
@@ -644,13 +652,12 @@
       }
 
       filteredData.forEach(item => {
-        // Classe de texto da situação (destaque em letras coloridas)
         let sitClass = "";
         if (item.situacao === "INOPERANTE") sitClass = "status-text-inoperante";
         else if (item.situacao === "OPERACIONAL") sitClass = "status-text-operacional";
-        else sitClass = "status-text-emprestado";
+        else if (item.situacao === "EMPRESTADO") sitClass = "status-text-emprestado";
+        else sitClass = "status-text-descarte";
 
-        // SLA Badge de Dias Inoperantes
         let badgeDias = "";
         if (item.situacao === "INOPERANTE") {
           if (item.diasInoperante <= 10) {
