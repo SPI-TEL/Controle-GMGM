@@ -112,7 +112,7 @@
     </div>
   </header>
 
-  <!-- AVISO DE STATUS -->
+  <!-- BANNER DE STATUS DA SINCRONIZAÇÃO (SEM A MENSAGEM DE SLA) -->
   <div class="max-w-[1700px] mx-auto px-4 mt-3">
     <div id="status-banner" class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg p-2.5 px-4 flex items-center justify-between text-xs font-medium shadow-sm">
       <div class="flex items-center space-x-2">
@@ -120,15 +120,12 @@
         <i class="fa-solid fa-circle-check text-emerald-600" id="banner-check"></i>
         <span id="banner-message">Conectado à planilha Google Sheets em tempo real.</span>
       </div>
-      <span class="bg-amber-100 text-amber-800 border border-amber-300 font-bold px-3 py-0.5 rounded-full text-[11px]">
-        Objetivo: Redução de Estouro de SLA & Tratativa de Justificativas
-      </span>
     </div>
   </div>
 
   <main class="max-w-[1700px] mx-auto px-4 mt-4 space-y-4">
 
-    <!-- METRICAS DE FROTA (KPIS) -->
+    <!-- MÉTRICAS DE FROTA (KPIS) -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-vivo-purple">
         <div class="flex items-center justify-between">
@@ -368,7 +365,6 @@
 
     function processarDados(data) {
       rawData = data.map((item, index) => {
-        // Função auxiliar para procurar colunas flexíveis
         const getVal = (keys) => {
           for (let k of Object.keys(item)) {
             const cleanKey = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -380,7 +376,7 @@
         };
 
         let rawAtivo = getVal(["ativo prisma", "ativo", "tag", "patrimonio", "codigo"]) || `GMG-${1000 + index}`;
-        let rawDdd = getVal(["ddd", "uf"]) || "SP";
+        let rawDdd = getVal(["ddd", "uf"]) || "";
         let rawCoord = getVal(["coordenador", "coord", "gestor", "responsavel"]) || "-";
         let rawSituacao = getVal(["situacao", "situa", "status_geral"]) || "OPERACIONAL";
         let rawKva = getVal(["potencia", "kva", "cap"]) || "15";
@@ -388,6 +384,12 @@
         let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || "";
         let rawPrevisao = getVal(["previsao", "prev", "previsao_os"]) || "-";
         let rawDias = getVal(["dias inoperante", "dias", "tempo"]) || "0";
+
+        // Filtro estrito do DDD: Apenas aceitar se for exclusivamente numérico (ex: 12, 14, 15, 16, 17, 18, 19). Exclui "SP".
+        let dddClean = String(rawDdd).replace(/[^0-9]/g, "").trim();
+        if (!dddClean || dddClean === "") {
+          return null; // Descarta registros sem DDD numérico (ex: DDD SP)
+        }
 
         // Limpeza de KVA
         let kvaNum = parseFloat(String(rawKva).replace(/[^0-9.,]/g, "").replace(",", ".")) || 15;
@@ -428,7 +430,7 @@
 
         return {
           ativo: tratarValorVazio(rawAtivo),
-          ddd: String(rawDdd).trim(),
+          ddd: dddClean,
           coordenacao: tratarValorVazio(rawCoord),
           situacao: sitPadrao,
           ehDescarte: ehDescarte,
@@ -438,7 +440,7 @@
           previsaoOS: tratarValorVazio(rawPrevisao),
           diasInoperante: diasInop
         };
-      });
+      }).filter(item => item !== null); // Remove os nulos (DDD SP descartado)
 
       preencherOpcoesFiltros();
       aplicarFiltros();
@@ -455,7 +457,7 @@
       const selectDDD = document.getElementById("filter-ddd");
       const selectCoord = document.getElementById("filter-coord");
 
-      const ddds = [...new Set(rawData.map(d => d.ddd))].filter(x => x !== "-").sort();
+      const ddds = [...new Set(rawData.map(d => d.ddd))].filter(x => x !== "-").sort((a, b) => parseInt(a) - parseInt(b));
       const coords = [...new Set(rawData.map(d => d.coordenacao))].filter(x => x !== "-").sort();
 
       selectDDD.innerHTML = '<option value="TODOS">Todos os DDDs</option>';
@@ -529,7 +531,7 @@
 
     function renderizarGraficoDDD() {
       const ctx = document.getElementById("chart-ddd").getContext("2d");
-      const ddds = [...new Set(filteredData.map(d => d.ddd))].filter(x => x !== "-").sort();
+      const ddds = [...new Set(filteredData.map(d => d.ddd))].filter(x => x !== "-").sort((a, b) => parseInt(a) - parseInt(b));
 
       const dataOp = ddds.map(ddd => filteredData.filter(d => d.ddd === ddd && d.situacao === "OPERACIONAL").length);
       const dataIn = ddds.map(ddd => filteredData.filter(d => d.ddd === ddd && d.situacao === "INOPERANTE").length);
