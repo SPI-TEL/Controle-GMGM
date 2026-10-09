@@ -57,7 +57,7 @@
     .badge-dias-vermelho { background-color: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
 
     .table-container { max-height: 600px; overflow-y: auto; }
-    .table-container th { position: sticky; top: 0; background-color: #F1F5F9; z-index: 10; }
+    .table-container th { position: sticky; top: 0; background-color: #334155; z-index: 10; color: #FFFFFF; }
   </style>
 </head>
 <body class="font-sans antialiased pb-12">
@@ -237,7 +237,7 @@
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / OS / Obs</label>
           <div class="relative">
-            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Ativo, OS, Observação..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
+            <input type="text" id="filter-search" onkeyup="aplicarFiltros()" placeholder="Ativo, OS, Ação Vivo..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 pl-8 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
             <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
           </div>
         </div>
@@ -280,7 +280,7 @@
 
     </div>
 
-    <!-- TABELA DE DETALHAMENTO -->
+    <!-- TABELA DE DETALHAMENTO COM TITULOS ESCUROS (bg-slate-700) -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       
       <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
@@ -289,7 +289,7 @@
             <i class="fa-solid fa-list-check text-vivo-purple"></i>
             <span>Detalhamento Operacional dos GMGs</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com Nº OS, Status OS, Observação e SLA de inoperância</p>
+          <p class="text-xs text-slate-500 mt-0.5">Visão consolidada com Nº OS, Ação Vivo, localização do site e SLA de inoperância</p>
         </div>
 
         <div class="flex items-center space-x-3 text-xs">
@@ -309,7 +309,7 @@
       <div class="table-container">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 border-b border-slate-200">
+            <tr class="text-[11px] font-extrabold uppercase tracking-wider text-white bg-slate-700 border-b border-slate-800">
               <th class="p-3 pl-4">Ativo</th>
               <th class="p-3">Município / DDD</th>
               <th class="p-3">Coordenação</th>
@@ -414,11 +414,20 @@
 
     function processarDados(data) {
       rawData = data.map((item, index) => {
-        const getVal = (keys) => {
+        // Função para encontrar chave por correspondência estrita ou de inclusão
+        const getValByExactName = (exactNames, fallbackIncludes) => {
           for (let k of Object.keys(item)) {
             const cleanKey = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            for (let searchKey of keys) {
-              if (cleanKey === searchKey || cleanKey.includes(searchKey)) return item[k];
+            for (let name of exactNames) {
+              if (cleanKey === name.toLowerCase()) return item[k];
+            }
+          }
+          if (fallbackIncludes) {
+            for (let k of Object.keys(item)) {
+              const cleanKey = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+              for (let name of fallbackIncludes) {
+                if (cleanKey.includes(name.toLowerCase())) return item[k];
+              }
             }
           }
           return null;
@@ -426,21 +435,21 @@
 
         const keys = Object.keys(item);
         
-        // Mapeamento Específico: Coluna M (Observação), Coluna N (NUM OS) e Coluna O (Ação Vivo)
-        let rawObsGMG = getVal(["observacao gmg", "observacao", "obs gmg", "obs"]) || (keys.length > 12 ? item[keys[12]] : "");
-        let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || (keys.length > 13 ? item[keys[13]] : "");
-        let rawAcaoVivo = getVal(["acao vivo", "acao"]) || (keys.length > 14 ? item[keys[14]] : "");
+        // Mapeamento Específico: Coluna M (Observação GMG), Coluna N (NUM. OS) e Coluna O (Ação Vivo)
+        let rawObsGMG = getValByExactName(["OBSERVAÇÃO GMG", "OBSERVACAO GMG"], ["observacao"]) || (keys.length > 12 ? item[keys[12]] : "");
+        let rawNumOS = getValByExactName(["NUM. OS", "NUM OS"], ["num. os", "num os"]) || (keys.length > 13 ? item[keys[13]] : "");
+        let rawAcaoVivo = getValByExactName(["Ação Vivo", "Acao Vivo"], ["acao vivo"]) || (keys.length > 14 ? item[keys[14]] : "");
 
-        let rawAtivo = getVal(["ativo prisma", "ativo", "tag", "patrimonio", "codigo"]) || `GMG-${1000 + index}`;
-        let rawMunicipio = getVal(["municipio", "cidade ativo", "cidade"]) || "-";
-        let rawDdd = getVal(["ddd", "uf"]) || "";
-        let rawCoord = getVal(["coordenador", "coord", "gestor", "responsavel"]) || "-";
-        let rawSituacao = getVal(["situacao", "situa", "status_geral"]) || "OPERACIONAL";
-        let rawKva = getVal(["potencia", "kva", "cap"]) || "15";
-        let rawPrevisao = getVal(["previsao", "prev", "previsao_os"]) || "-";
-        let rawSiteEstacionado = getVal(["site acoplado", "site estacionado", "endereco site", "cidade site"]) || "";
-        let rawEndEstacionado = getVal(["endereco site estacionado", "endereco site"]) || "";
-        let rawDias = getVal(["dias inoperante", "dias", "tempo"]) || "0";
+        let rawAtivo = getValByExactName(["ATIVO PRISMA"], ["ativo"]) || `GMG-${1000 + index}`;
+        let rawMunicipio = getValByExactName(["MUNICIPIO"], ["municipio", "cidade"]) || "-";
+        let rawDdd = getValByExactName(["DDD"], ["ddd"]) || "";
+        let rawCoord = getValByExactName(["COORDENADOR"], ["coord", "gestor"]) || "-";
+        let rawSituacao = getValByExactName(["SITUAÇÃO", "SITUACAO"], ["situa"]) || "OPERACIONAL";
+        let rawKva = getValByExactName(["POTENCIA"], ["potencia", "kva"]) || "15";
+        let rawPrevisao = getValByExactName(["PREVISÃO", "PREVISAO"], ["previs"]) || "-";
+        let rawSiteEstacionado = getValByExactName(["SITE ACOPLADO/ESTACIONADO"], ["site acoplado", "site estacionado"]) || "";
+        let rawEndEstacionado = getValByExactName(["ENDEREÇO SITE ESTACIONADO", "ENDERECO SITE ESTACIONADO"], ["endereco site"]) || "";
+        let rawDias = getValByExactName(["Dias Inoperante"], ["dias inoperante", "dias"]) || "0";
 
         // Filtro estrito do DDD (Exclui "SP")
         let dddClean = String(rawDdd).replace(/[^0-9]/g, "").trim();
@@ -475,7 +484,7 @@
           siteFinal = endClean;
         }
 
-        // Formatação explícita do Nº OS (Coluna N) e Status/Ação Vivo (Coluna O)
+        // Formatação explícita da Coluna N (Nº OS) + Coluna O (Ação Vivo)
         let statusOSFinal = "-";
         let numOsClean = tratarValorVazio(rawNumOS);
         let acaoClean = tratarValorVazio(rawAcaoVivo);
@@ -513,7 +522,7 @@
           previsaoOS: tratarValorVazio(rawPrevisao),
           siteEstacionado: siteFinal,
           diasInoperante: diasInop,
-          obsGMG: tratarValorVazio(rawObsGMG) // Coluna M
+          obsGMG: tratarValorVazio(rawObsGMG)
         };
       }).filter(item => item !== null);
 
@@ -734,7 +743,7 @@
         return;
       }
 
-      filteredData.forEach((item, idx) => {
+      filteredData.forEach((item) => {
         let sitClass = "";
         if (item.situacao === "INOPERANTE") sitClass = "status-text-inoperante";
         else if (item.situacao === "OPERACIONAL") sitClass = "status-text-operacional";
