@@ -315,7 +315,7 @@
               <th class="p-3">Coordenação</th>
               <th class="p-3">Situação</th>
               <th class="p-3">Potência (KVA)</th>
-              <th class="p-3">Status OS (Nº OS & Ação Vivo)</th>
+              <th class="p-3">OS & STATUS</th>
               <th class="p-3">Previsão OS</th>
               <th class="p-3">Site Acoplado / Estacionado</th>
               <th class="p-3 text-center">Dias Inoperante</th>
@@ -392,14 +392,17 @@
           return null;
         };
 
+        // Obtenção por posição e nome para garantir leitura exata de N (NUM. OS) e O (Ação Vivo)
+        const keys = Object.keys(item);
+        let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || (keys.length > 13 ? item[keys[13]] : "");
+        let rawAcaoVivo = getVal(["acao vivo", "acao", "observacao gmg", "obs"]) || (keys.length > 14 ? item[keys[14]] : "");
+
         let rawAtivo = getVal(["ativo prisma", "ativo", "tag", "patrimonio", "codigo"]) || `GMG-${1000 + index}`;
         let rawMunicipio = getVal(["municipio", "cidade ativo", "cidade"]) || "-";
         let rawDdd = getVal(["ddd", "uf"]) || "";
         let rawCoord = getVal(["coordenador", "coord", "gestor", "responsavel"]) || "-";
         let rawSituacao = getVal(["situacao", "situa", "status_geral"]) || "OPERACIONAL";
         let rawKva = getVal(["potencia", "kva", "cap"]) || "15";
-        let rawAcaoVivo = getVal(["acao vivo", "acao", "observacao gmg", "obs"]) || "";
-        let rawNumOS = getVal(["num. os", "num os", "numero_os", "os"]) || "";
         let rawPrevisao = getVal(["previsao", "prev", "previsao_os"]) || "-";
         let rawSiteEstacionado = getVal(["site acoplado", "site estacionado", "endereco site", "cidade site"]) || "";
         let rawEndEstacionado = getVal(["endereco site estacionado", "endereco site"]) || "";
@@ -438,7 +441,7 @@
           siteFinal = endClean;
         }
 
-        // Formatação explícita do Status OS: Nº da OS + Ação Vivo
+        // Formatação explícita do OS & STATUS: Coluna N (Nº OS) + Coluna O (Ação Vivo)
         let statusOSFinal = "-";
         let numOsClean = tratarValorVazio(rawNumOS);
         let acaoClean = tratarValorVazio(rawAcaoVivo);
@@ -740,7 +743,7 @@
         return;
       }
 
-      let csv = "Ativo,Municipio,DDD,Coordenacao,Situacao,Porte_KVA,Status_OS,Previsao_OS,Site_Estacionado,Dias_Inoperante\n";
+      let csv = "Ativo,Municipio,DDD,Coordenacao,Situacao,Porte_KVA,OS_e_Status,Previsao_OS,Site_Estacionado,Dias_Inoperante\n";
       filteredData.forEach(row => {
         csv += `"${row.ativo}","${row.municipio}","${row.ddd}","${row.coordenacao}","${row.situacao}","${row.porteKva}","${row.statusOS}","${row.previsaoOS}","${row.siteEstacionado}","${row.diasInoperante}"\n`;
       });
