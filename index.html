@@ -60,7 +60,7 @@
 </head>
 <body class="font-sans antialiased pb-12">
 
-  <!-- CABEÇALHO ESCURO (#0B132B) -->
+  <!-- CABEÇALHO ESCURO -->
   <header class="bg-vivo-darkNavy text-white shadow-xl border-b border-slate-800">
     <div class="max-w-[1750px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       
@@ -342,7 +342,7 @@
     </div>
   </div>
 
-  <!-- MODAL PAINEL 360° / DOSSIÊ COM GRAVAÇÃO DIRETA -->
+  <!-- MODAL PAINEL 360° / DOSSIÊ COM ALTERAÇÃO DE SITUAÇÃO -->
   <div id="modal-acao" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 md:p-6">
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden">
       
@@ -414,7 +414,7 @@
           </div>
         </div>
 
-        <!-- Bloco 3: CARD EDITÁVEL STATUS & AÇÃO VIVO -->
+        <!-- Bloco 3: CARD EDITÁVEL STATUS, SITUAÇÃO & AÇÃO VIVO -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           <div class="border border-slate-200 rounded-xl p-4 bg-white relative shadow-sm">
@@ -433,6 +433,10 @@
             <!-- Modo de Leitura -->
             <div id="view-modo-leitura" class="space-y-2 text-xs">
               <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Situação Operacional:</span>
+                <p id="modal-acao-situacao-texto" class="font-extrabold text-sm mt-0.5">--</p>
+              </div>
+              <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase">Previsão Retorno OS:</span>
                 <p id="modal-acao-previsao" class="font-extrabold text-slate-800 mt-0.5 text-sm">--</p>
               </div>
@@ -444,8 +448,19 @@
               </div>
             </div>
 
-            <!-- Modo de Edição -->
+            <!-- Modo de Edição com Seleção de Situação -->
             <div id="view-modo-edicao" class="space-y-3 text-xs hidden">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Situação do GMG:</label>
+                <select id="input-edit-situacao" class="w-full text-xs font-bold border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none bg-slate-50">
+                  <option value="OPERACIONAL">OPERACIONAL</option>
+                  <option value="INOPERANTE">INOPERANTE</option>
+                  <option value="EMPRESTADO">EMPRESTADO</option>
+                  <option value="SUCATA">SUCATA</option>
+                  <option value="REMANEJADO">REMANEJADO</option>
+                </select>
+              </div>
+
               <div>
                 <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Previsão Retorno OS:</label>
                 <input type="text" id="input-edit-previsao" placeholder="Ex: 25/11/2026" class="w-full text-xs font-bold border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none bg-slate-50">
@@ -530,10 +545,7 @@
   </div>
 
   <script>
-    // URL CSV DA SUA FOLHA DE CÁLCULO ATUALIZADA
     const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUI4_D7coi0E0CIcT-z13F33y9PIRsh8b0KyKWjnqDURrk4mK_RtORpGnKR1Cay_gyxiAZcUgMyLjH/pub?gid=361876213&single=true&output=csv";
-
-    // URL DO SEU GOOGLE APPS SCRIPT CONFIGURADA
     const URL_GOOGLE_SCRIPT_WEBAPP = "https://script.google.com/macros/s/AKfycbw1fAKcb5F10ufY4gKiYtjm_nGM0Z_tBNqhsX52aRlpIiKsW-NsdaMOskJiU_YZkmYH/exec";
 
     let rawData = [];
@@ -557,7 +569,7 @@
       icon.classList.add("fa-spin");
       spinner.classList.remove("hidden");
       check.classList.add("hidden");
-      msg.textContent = "Sincronizando dados com a nova folha de cálculo...";
+      msg.textContent = "Sincronizando dados com a folha de cálculo...";
 
       Papa.parse(URL_CSV, {
         download: true,
@@ -593,6 +605,17 @@
         }
       }
       return limpo;
+    }
+
+    function normalizarSituacao(rawSit) {
+      let s = String(rawSit || "").toUpperCase().trim();
+      if (s.includes("INOPERANTE")) return { situacao: "INOPERANTE", ehDescarte: false };
+      if (s.includes("OPERACIONAL")) return { situacao: "OPERACIONAL", ehDescarte: false };
+      if (s.includes("EMPRESTADO")) return { situacao: "EMPRESTADO", ehDescarte: false };
+      if (s.includes("SUCATA")) return { situacao: "SUCATA", ehDescarte: true };
+      if (s.includes("DUPLICADO")) return { situacao: "DUPLICADO", ehDescarte: true };
+      if (s.includes("REMANEJADO")) return { situacao: "REMANEJADO", ehDescarte: true };
+      return { situacao: s || "OPERACIONAL", ehDescarte: false };
     }
 
     function processarDados(data) {
@@ -634,9 +657,7 @@
         let rawFoto = getValByExactName(["FOTO GMG", "IMAGEM GMG", "FOTO", "IMAGEM", "EVIDENCIA"], ["foto", "imagem", "drive"]);
 
         let dddClean = String(rawDdd).replace(/[^0-9]/g, "").trim();
-        if (!dddClean || dddClean === "") {
-          return null;
-        }
+        if (!dddClean || dddClean === "") return null;
 
         let kvaNum = parseFloat(String(rawKva).replace(/[^0-9.,]/g, "").replace(",", ".")) || 15;
         
@@ -674,16 +695,7 @@
           statusOSFinal = acaoClean;
         }
 
-        let sitPadrao = String(rawSituacao).toUpperCase().trim();
-        let ehDescarte = false;
-
-        if (sitPadrao.includes("INOPERANTE")) sitPadrao = "INOPERANTE";
-        else if (sitPadrao.includes("OPERACIONAL")) sitPadrao = "OPERACIONAL";
-        else if (sitPadrao.includes("EMPRESTADO")) sitPadrao = "EMPRESTADO";
-        else if (sitPadrao.includes("SUCATA")) { sitPadrao = "SUCATA"; ehDescarte = true; }
-        else if (sitPadrao.includes("DUPLICADO")) { sitPadrao = "DUPLICADO"; ehDescarte = true; }
-        else if (sitPadrao.includes("REMANEJADO")) { sitPadrao = "REMANEJADO"; ehDescarte = true; }
-
+        const normSit = normalizarSituacao(rawSituacao);
         let fotoLimpa = rawFoto ? converterLinkDriveParaImagem(String(rawFoto).trim()) : "";
 
         return {
@@ -691,8 +703,8 @@
           municipio: tratarValorVazio(rawMunicipio),
           ddd: dddClean,
           coordenacao: tratarValorVazio(rawCoord),
-          situacao: sitPadrao,
-          ehDescarte: ehDescarte,
+          situacao: normSit.situacao,
+          ehDescarte: normSit.ehDescarte,
           kvaNum: kvaNum,
           porteKva: porteKva,
           categoriaPorte: categoriaPorte,
@@ -996,6 +1008,27 @@
       document.getElementById("modal-obs").classList.add("hidden");
     }
 
+    function atualizarBadgeSituacaoModal(situacao) {
+      const sitBadge = document.getElementById("modal-acao-situacao-badge");
+      const sitTexto = document.getElementById("modal-acao-situacao-texto");
+      sitBadge.textContent = situacao;
+      sitTexto.textContent = situacao;
+
+      if (situacao === "OPERACIONAL") {
+        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
+        sitTexto.className = "font-extrabold text-sm mt-0.5 status-text-operacional";
+      } else if (situacao === "INOPERANTE") {
+        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-rose-500/20 text-rose-300 border border-rose-400/30";
+        sitTexto.className = "font-extrabold text-sm mt-0.5 status-text-inoperante";
+      } else if (situacao === "EMPRESTADO") {
+        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-amber-500/20 text-amber-300 border border-amber-400/30";
+        sitTexto.className = "font-extrabold text-sm mt-0.5 status-text-emprestado";
+      } else {
+        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-slate-500/20 text-slate-300 border border-slate-400/30";
+        sitTexto.className = "font-extrabold text-sm mt-0.5 status-text-descarte";
+      }
+    }
+
     function abrirModalAcao(index) {
       currentEditIndex = index;
       const item = filteredData[index];
@@ -1004,18 +1037,7 @@
       cancelarEdicaoAcao();
 
       document.getElementById("modal-acao-ativo-badge").textContent = item.ativo;
-      const sitBadge = document.getElementById("modal-acao-situacao-badge");
-      sitBadge.textContent = item.situacao;
-
-      if (item.situacao === "OPERACIONAL") {
-        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
-      } else if (item.situacao === "INOPERANTE") {
-        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-rose-500/20 text-rose-300 border border-rose-400/30";
-      } else if (item.situacao === "EMPRESTADO") {
-        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-amber-500/20 text-amber-300 border border-amber-400/30";
-      } else {
-        sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-slate-500/20 text-slate-300 border border-slate-400/30";
-      }
+      atualizarBadgeSituacaoModal(item.situacao);
 
       document.getElementById("modal-acao-potencia").textContent = item.porteKva;
       document.getElementById("modal-acao-ddd").textContent = `DDD ${item.ddd}`;
@@ -1102,6 +1124,7 @@
         modoEdicao.classList.remove("hidden");
         document.getElementById("btn-toggle-edit-acao").classList.add("hidden");
 
+        document.getElementById("input-edit-situacao").value = item.situacao || "OPERACIONAL";
         document.getElementById("input-edit-previsao").value = item.previsaoOS !== "-" ? item.previsaoOS : "";
         document.getElementById("input-edit-acao").value = item.acaoVivo !== "-" ? item.acaoVivo : "";
       } else {
@@ -1122,6 +1145,7 @@
       const item = filteredData[currentEditIndex];
       if (!item) return;
 
+      const novaSituacao = document.getElementById("input-edit-situacao").value;
       const novaPrevisao = document.getElementById("input-edit-previsao").value.trim() || "-";
       const novaAcao = document.getElementById("input-edit-acao").value.trim() || "-";
 
@@ -1131,6 +1155,10 @@
       aviso.classList.remove("hidden");
       btnGravar.disabled = true;
 
+      // Atualiza o item localmente
+      const norm = normalizarSituacao(novaSituacao);
+      item.situacao = norm.situacao;
+      item.ehDescarte = norm.ehDescarte;
       item.previsaoOS = novaPrevisao;
       item.acaoVivo = novaAcao;
 
@@ -1146,22 +1174,33 @@
 
       const originalItem = rawData.find(d => d.ativo === item.ativo);
       if (originalItem) {
+        originalItem.situacao = item.situacao;
+        originalItem.ehDescarte = item.ehDescarte;
         originalItem.previsaoOS = novaPrevisao;
         originalItem.acaoVivo = novaAcao;
         originalItem.statusOS = item.statusOS;
       }
 
+      // Atualiza o modal
+      atualizarBadgeSituacaoModal(item.situacao);
       document.getElementById("modal-acao-previsao").textContent = novaPrevisao;
       document.getElementById("modal-acao-detalhe-os").textContent = novaAcao;
+      document.getElementById("modal-acao-sla").textContent = item.situacao === "INOPERANTE" ? `${item.diasInoperante} dias inop.` : "Em dia";
+
+      // Atualiza a tabela, gráficos e KPIs
+      atualizarKPIs();
+      renderizarGraficoDDD();
+      renderizarGraficoKVA();
       renderizarTabela();
 
-      // Envia a requisição POST para o Google Apps Script
+      // Dispara envio POST para a URL do Google Apps Script
       fetch(URL_GOOGLE_SCRIPT_WEBAPP, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ativo: item.ativo,
+          situacao: item.situacao,
           previsaoOS: novaPrevisao,
           acaoVivo: novaAcao
         })
