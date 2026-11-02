@@ -45,13 +45,11 @@
   <style>
     body { background-color: #F8FAFC; color: #1E293B; }
     
-    /* Destaque de texto colorido para Situação */
     .status-text-inoperante { color: #DC2626; font-weight: 800; }
     .status-text-operacional { color: #16A34A; font-weight: 800; }
     .status-text-emprestado { color: #D97706; font-weight: 800; }
     .status-text-descarte { color: #64748B; font-weight: 700; }
     
-    /* Badges de SLA de Inoperância */
     .badge-dias-verde { background-color: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
     .badge-dias-amarelo { background-color: #FEF9C3; color: #A16207; border: 1px solid #FDE047; }
     .badge-dias-vermelho { background-color: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
@@ -66,7 +64,6 @@
   <header class="bg-vivo-darkNavy text-white shadow-xl border-b border-slate-800">
     <div class="max-w-[1750px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
       
-      <!-- Lado Esquerdo: Ícone + Título + Badge Live -->
       <div class="flex items-center space-x-3">
         <div class="bg-sky-500/20 p-2.5 rounded-lg border border-sky-400/30 text-sky-400">
           <i class="fa-solid font-bold fa-rotate-left text-xl"></i>
@@ -77,7 +74,7 @@
               Controle de GMG Portátil - VIVO Rede Móvel
             </h1>
             <span class="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              Google Sheets Live
+              Gravação Direta no Sheets
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5 font-medium">
@@ -86,7 +83,6 @@
         </div>
       </div>
 
-      <!-- Lado Direito: Ações e Sincronização -->
       <div class="flex items-center space-x-3">
         <div class="text-right hidden sm:block mr-2">
           <span class="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Última Sincronização</span>
@@ -118,7 +114,7 @@
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-circle-notch fa-spin text-emerald-600 hidden" id="banner-spinner"></i>
         <i class="fa-solid fa-circle-check text-emerald-600" id="banner-check"></i>
-        <span id="banner-message">Conectado à planilha Google Sheets em tempo real.</span>
+        <span id="banner-message">Conectado à folha de cálculo Google Sheets em tempo real.</span>
       </div>
     </div>
   </div>
@@ -192,7 +188,6 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <!-- Filtro DDD -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">DDD</label>
           <select id="filter-ddd" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -200,7 +195,6 @@
           </select>
         </div>
 
-        <!-- Filtro Potência KVA -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Potência (KVA)</label>
           <select id="filter-porte" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -212,7 +206,6 @@
           </select>
         </div>
 
-        <!-- Filtro Coordenador -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Coordenador / Área</label>
           <select id="filter-coord" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -220,7 +213,6 @@
           </select>
         </div>
 
-        <!-- Filtro Situação -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Situação</label>
           <select id="filter-situacao" onchange="aplicarFiltros()" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none">
@@ -233,7 +225,6 @@
           </select>
         </div>
 
-        <!-- Pesquisar -->
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Pesquisar Ativo / OS / Obs</label>
           <div class="relative">
@@ -244,10 +235,8 @@
       </div>
     </div>
 
-    <!-- GRÁFICOS (DDD + PORCENTAGEM DE KVA) -->
+    <!-- GRÁFICOS -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      
-      <!-- DDD (2 Colunas) -->
       <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
@@ -261,7 +250,6 @@
         </div>
       </div>
 
-      <!-- KVA com Porcentagem (1 Coluna) -->
       <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
@@ -272,17 +260,12 @@
         <div class="relative h-[200px] w-full flex justify-center items-center">
           <canvas id="chart-kva"></canvas>
         </div>
-        
-        <div id="kva-legend" class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-[11px]">
-          <!-- Inserido dinamicamente -->
-        </div>
+        <div id="kva-legend" class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100 text-[11px]"></div>
       </div>
-
     </div>
 
-    <!-- TABELA DE DETALHAMENTO COM TITULOS ESCUROS -->
+    <!-- TABELA DE DETALHAMENTO -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      
       <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
         <div>
           <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
@@ -322,17 +305,13 @@
               <th class="p-3 text-center pr-4">Ação</th>
             </tr>
           </thead>
-          <tbody id="table-body" class="divide-y divide-slate-100 text-xs font-medium">
-            <!-- Linhas inseridas via JavaScript -->
-          </tbody>
+          <tbody id="table-body" class="divide-y divide-slate-100 text-xs font-medium"></tbody>
         </table>
       </div>
-
     </div>
-
   </main>
 
-  <!-- MODAL POPUP PARA OBSERVAÇÃO GMG (COLUNA M) -->
+  <!-- MODAL POPUP PARA OBSERVAÇÃO GMG -->
   <div id="modal-obs" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 transform transition-all">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
@@ -351,8 +330,7 @@
         </div>
         <div>
           <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Detalhes Registrados:</label>
-          <p id="modal-obs-texto" class="text-xs text-slate-700 bg-amber-50/50 p-4 rounded-xl border border-amber-200/60 leading-relaxed font-medium min-h-[80px]">
-          </p>
+          <p id="modal-obs-texto" class="text-xs text-slate-700 bg-amber-50/50 p-4 rounded-xl border border-amber-200/60 leading-relaxed font-medium min-h-[80px]"></p>
         </div>
       </div>
 
@@ -364,7 +342,7 @@
     </div>
   </div>
 
-  <!-- MODAL PAINEL 360° / DOSSIÊ COMPLETO DO GMG (BOTÃO AÇÃO) -->
+  <!-- MODAL PAINEL 360° / DOSSIÊ COM GRAVAÇÃO DIRETA -->
   <div id="modal-acao" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 md:p-6">
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden">
       
@@ -388,10 +366,10 @@
         </button>
       </div>
 
-      <!-- Conteúdo do Modal (Scrollável) -->
+      <!-- Conteúdo do Modal -->
       <div class="p-5 md:p-6 overflow-y-auto space-y-5 text-slate-700">
 
-        <!-- Bloco 1: Cartões Rápidos do GMG -->
+        <!-- Bloco 1: KPIs Rápidos -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl">
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Potência GMG</span>
@@ -436,25 +414,67 @@
           </div>
         </div>
 
-        <!-- Bloco 3: Histórico, Observações e Ação Vivo -->
+        <!-- Bloco 3: CARD EDITÁVEL STATUS & AÇÃO VIVO -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="border border-slate-200 rounded-xl p-4 bg-white">
-            <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-2 mb-2">
-              <i class="fa-solid fa-wrench text-vivo-purple"></i>
-              <span>Status & Ação Vivo</span>
-            </h4>
-            <div class="space-y-2 text-xs">
+          
+          <div class="border border-slate-200 rounded-xl p-4 bg-white relative shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-2">
+                <i class="fa-solid fa-wrench text-vivo-purple"></i>
+                <span>Status & Ação Vivo</span>
+              </h4>
+
+              <button id="btn-toggle-edit-acao" onclick="toggleModoEdicaoAcao()" class="text-xs bg-purple-50 hover:bg-vivo-purple hover:text-white text-vivo-purple font-bold px-2.5 py-1 rounded-lg border border-purple-200 transition-all flex items-center space-x-1">
+                <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                <span id="lbl-btn-edit">Editar</span>
+              </button>
+            </div>
+
+            <!-- Modo de Leitura -->
+            <div id="view-modo-leitura" class="space-y-2 text-xs">
               <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase">Previsão Retorno OS:</span>
-                <p id="modal-acao-previsao" class="font-bold text-slate-800 mt-0.5">--</p>
+                <p id="modal-acao-previsao" class="font-extrabold text-slate-800 mt-0.5 text-sm">--</p>
               </div>
               <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase">Ação da Operação Vivo:</span>
-                <p id="modal-acao-detalhe-os" class="bg-purple-50 text-vivo-purple border border-purple-100 p-2.5 rounded-lg font-medium leading-relaxed mt-0.5">--</p>
+                <div id="modal-acao-detalhe-os" class="bg-purple-50/70 text-vivo-purple border border-purple-200/60 p-3 rounded-xl font-semibold leading-relaxed mt-1 min-h-[60px]">
+                  --
+                </div>
               </div>
             </div>
+
+            <!-- Modo de Edição -->
+            <div id="view-modo-edicao" class="space-y-3 text-xs hidden">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Previsão Retorno OS:</label>
+                <input type="text" id="input-edit-previsao" placeholder="Ex: 25/11/2026" class="w-full text-xs font-bold border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none bg-slate-50">
+              </div>
+
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Ação da Operação Vivo:</label>
+                <textarea id="input-edit-acao" rows="3" placeholder="Ex: Execução Aprovada PEDIDO 161739..." class="w-full text-xs font-medium border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none bg-slate-50"></textarea>
+              </div>
+
+              <div id="aviso-salvando" class="hidden text-[11px] text-amber-600 font-semibold items-center space-x-1">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Gravando na folha de cálculo Google Sheets...</span>
+              </div>
+
+              <div class="flex items-center justify-end space-x-2 pt-1">
+                <button onclick="cancelarEdicaoAcao()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 font-semibold text-xs hover:bg-slate-100 transition-all">
+                  Cancelar
+                </button>
+                <button id="btn-gravar-sheets" onclick="salvarEdicaoAcao()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow flex items-center space-x-1.5 transition-all">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>Gravar na Planilha</span>
+                </button>
+              </div>
+            </div>
+
           </div>
 
+          <!-- Observações Gerais -->
           <div class="border border-slate-200 rounded-xl p-4 bg-white">
             <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-2 mb-2">
               <i class="fa-solid fa-comment-dots text-vivo-purple"></i>
@@ -466,7 +486,7 @@
           </div>
         </div>
 
-        <!-- Bloco 4: Evidências Fotográficas do GMG (Se houver link de imagem/foto na planilha) -->
+        <!-- Bloco 4: Fotos/Evidências -->
         <div class="border border-slate-200 rounded-xl p-4 bg-white">
           <div class="flex items-center justify-between mb-2">
             <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-2">
@@ -483,25 +503,22 @@
             <img id="modal-acao-imagem" src="" alt="Foto GMG" class="hidden max-h-[300px] w-auto rounded-lg shadow-sm object-contain cursor-zoom-in" onclick="window.open(this.src, '_blank')">
             <div id="modal-acao-sem-foto" class="text-center p-4 text-slate-400">
               <i class="fa-regular fa-image text-3xl mb-1 text-slate-300 block"></i>
-              <span class="text-xs font-semibold">Nenhuma foto anexada a este GMG na planilha</span>
+              <span class="text-xs font-semibold">Nenhuma foto anexada a este GMG na folha de cálculo</span>
             </div>
           </div>
         </div>
 
-        <!-- Bloco 5: Campos Complementares Automáticos da Planilha -->
+        <!-- Bloco 5: Outros Campos -->
         <div id="modal-acao-extras-container" class="border border-slate-200 rounded-xl p-4 bg-white hidden">
           <h4 class="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-2 mb-3">
             <i class="fa-solid fa-circle-info text-vivo-purple"></i>
             <span>Outras Informações Registradas</span>
           </h4>
-          <div id="modal-acao-extras" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
-            <!-- Gerado via script dinamicamente -->
-          </div>
+          <div id="modal-acao-extras" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs"></div>
         </div>
 
       </div>
 
-      <!-- Rodapé do Modal -->
       <div class="bg-slate-50 border-t border-slate-200 p-4 px-6 flex items-center justify-between">
         <span class="text-xs text-slate-400 font-medium">Contrato Vivo • Gerenciamento Operacional</span>
         <button onclick="fecharModalAcao()" class="bg-vivo-purple hover:bg-purple-900 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow transition-all">
@@ -513,10 +530,15 @@
   </div>
 
   <script>
-    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR5ioN1cNNVYFheS9BdFsKSFPHZlHnRiAF6AC3dGW_uxZDrCZzNhDxbBJGCgHgCnQ/pub?gid=361876213&single=true&output=csv";
+    // URL CSV DA SUA FOLHA DE CÁLCULO ATUALIZADA
+    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUI4_D7coi0E0CIcT-z13F33y9PIRsh8b0KyKWjnqDURrk4mK_RtORpGnKR1Cay_gyxiAZcUgMyLjH/pub?gid=361876213&single=true&output=csv";
+
+    // URL DO SEU GOOGLE APPS SCRIPT CONFIGURADA
+    const URL_GOOGLE_SCRIPT_WEBAPP = "https://script.google.com/macros/s/AKfycbw1fAKcb5F10ufY4gKiYtjm_nGM0Z_tBNqhsX52aRlpIiKsW-NsdaMOskJiU_YZkmYH/exec";
 
     let rawData = [];
     let filteredData = [];
+    let currentEditIndex = null;
     let chartDDDInstance = null;
     let chartKVAInstance = null;
 
@@ -535,7 +557,7 @@
       icon.classList.add("fa-spin");
       spinner.classList.remove("hidden");
       check.classList.add("hidden");
-      msg.textContent = "Sincronizando dados com a planilha Google Sheets...";
+      msg.textContent = "Sincronizando dados com a nova folha de cálculo...";
 
       Papa.parse(URL_CSV, {
         download: true,
@@ -547,7 +569,7 @@
           icon.classList.remove("fa-spin");
           spinner.classList.add("hidden");
           check.classList.remove("hidden");
-          msg.textContent = "Dados atualizados com sucesso da planilha Google Sheets.";
+          msg.textContent = "Dados atualizados com sucesso da folha de cálculo Google Sheets.";
           
           const now = new Date();
           document.getElementById("sync-time").textContent = now.toLocaleTimeString('pt-BR');
@@ -556,7 +578,7 @@
           console.error("Erro ao carregar CSV:", err);
           icon.classList.remove("fa-spin");
           spinner.classList.add("hidden");
-          msg.textContent = "Erro ao conectar com a planilha online.";
+          msg.textContent = "Erro ao conectar com a folha de cálculo online.";
         }
       });
     }
@@ -605,12 +627,10 @@
         let rawCoord = getValByExactName(["COORDENADOR"], ["coord", "gestor"]) || "-";
         let rawSituacao = getValByExactName(["SITUAÇÃO", "SITUACAO"], ["situa"]) || "OPERACIONAL";
         let rawKva = getValByExactName(["POTENCIA"], ["potencia", "kva"]) || "15";
-        let rawPrevisao = getValByExactName(["PREVISÃO", "PREVISAO"], ["previs"]) || "-";
+        let rawPrevisao = getValByExactName(["PREVISÃO", "PREVISAO", "PREVISÃO RETORNO OS"], ["previs"]) || "-";
         let rawSiteEstacionado = getValByExactName(["SITE ACOPLADO/ESTACIONADO"], ["site acoplado", "site estacionado"]) || "";
         let rawEndEstacionado = getValByExactName(["ENDEREÇO SITE ESTACIONADO", "ENDERECO SITE ESTACIONADO"], ["endereco site"]) || "";
         let rawDias = getValByExactName(["Dias Inoperante"], ["dias inoperante", "dias"]) || "0";
-        
-        // Foto ou Link de Imagem do GMG
         let rawFoto = getValByExactName(["FOTO GMG", "IMAGEM GMG", "FOTO", "IMAGEM", "EVIDENCIA"], ["foto", "imagem", "drive"]);
 
         let dddClean = String(rawDdd).replace(/[^0-9]/g, "").trim();
@@ -684,7 +704,7 @@
           diasInoperante: diasInop,
           obsGMG: tratarValorVazio(rawObsGMG),
           fotoGMG: fotoLimpa,
-          rawItem: item // Para capturar dinamicamente outros campos do GMG
+          rawItem: item
         };
       }).filter(item => item !== null);
 
@@ -925,7 +945,6 @@
           badgeDias = `<span class="text-slate-400">-</span>`;
         }
 
-        // Botão de Observação GMG (Coluna M)
         let btnObs = "";
         if (item.obsGMG && item.obsGMG !== "-") {
           btnObs = `
@@ -939,7 +958,6 @@
           `;
         }
 
-        // Botão da Nova Coluna Ação (Dossiê Completo do GMG)
         let btnAcao = `
           <button onclick="abrirModalAcao(${idx})" class="bg-vivo-purple hover:bg-purple-900 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all shadow flex items-center justify-center space-x-1.5 mx-auto hover:shadow-md hover:scale-105 active:scale-95">
             <i class="fa-solid fa-bolt-lightning text-[10px]"></i>
@@ -957,7 +975,7 @@
           <td class="p-3 ${sitClass}">${item.situacao}</td>
           <td class="p-3 text-slate-600 font-medium">${item.porteKva}</td>
           <td class="p-3 text-slate-700 font-mono text-[11px]">${item.statusOS}</td>
-          <td class="p-3 text-slate-600">${item.previsaoOS}</td>
+          <td class="p-3 text-slate-600 font-semibold">${item.previsaoOS}</td>
           <td class="p-3 text-slate-600 text-[11px] font-medium">${item.siteEstacionado}</td>
           <td class="p-3 text-center flex items-center justify-center space-x-1">${badgeDias} ${btnObs}</td>
           <td class="p-3 text-center pr-4">${btnAcao}</td>
@@ -967,7 +985,6 @@
       });
     }
 
-    // Modal para Observação Simples GMG
     function abrirModalObs(ativo, obsEncoded) {
       const obsText = decodeURIComponent(obsEncoded);
       document.getElementById("modal-obs-ativo").textContent = ativo;
@@ -979,12 +996,13 @@
       document.getElementById("modal-obs").classList.add("hidden");
     }
 
-    // Modal de Dossiê Completo do GMG (Botão Ação)
     function abrirModalAcao(index) {
+      currentEditIndex = index;
       const item = filteredData[index];
       if (!item) return;
 
-      // Ativo e Situação Badge
+      cancelarEdicaoAcao();
+
       document.getElementById("modal-acao-ativo-badge").textContent = item.ativo;
       const sitBadge = document.getElementById("modal-acao-situacao-badge");
       sitBadge.textContent = item.situacao;
@@ -999,23 +1017,20 @@
         sitBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase bg-slate-500/20 text-slate-300 border border-slate-400/30";
       }
 
-      // Bloco 1: KPIs Rápidos
       document.getElementById("modal-acao-potencia").textContent = item.porteKva;
       document.getElementById("modal-acao-ddd").textContent = `DDD ${item.ddd}`;
       document.getElementById("modal-acao-os").textContent = item.numOS !== "-" ? `#OS-${item.numOS}` : "Sem OS aberta";
       document.getElementById("modal-acao-sla").textContent = item.situacao === "INOPERANTE" ? `${item.diasInoperante} dias inop.` : "Em dia";
 
-      // Bloco 2: Localização
       document.getElementById("modal-acao-municipio").textContent = item.municipio;
       document.getElementById("modal-acao-coord").textContent = item.coordenacao;
       document.getElementById("modal-acao-site").textContent = item.siteEstacionado !== "-" ? item.siteEstacionado : "Base / Não acoplado";
 
-      // Bloco 3: Histórico e Ação Vivo
       document.getElementById("modal-acao-previsao").textContent = item.previsaoOS !== "-" ? item.previsaoOS : "Sem previsão registrada";
-      document.getElementById("modal-acao-detalhe-os").textContent = item.acaoVivo !== "-" ? item.acaoVivo : "Nenhuma ação corretiva em andamento no momento.";
+      document.getElementById("modal-acao-detalhe-os").textContent = item.acaoVivo !== "-" ? item.acaoVivo : "Nenhuma ação corretiva registrada.";
+
       document.getElementById("modal-acao-obs").textContent = item.obsGMG !== "-" ? item.obsGMG : "Sem observações adicionais para este equipamento.";
 
-      // Bloco 4: Fotos/Evidências
       const imgElement = document.getElementById("modal-acao-imagem");
       const noImgElement = document.getElementById("modal-acao-sem-foto");
       const linkFotoElement = document.getElementById("modal-acao-link-foto");
@@ -1033,7 +1048,6 @@
         linkFotoElement.classList.add("hidden");
       }
 
-      // Bloco 5: Exibir campos extras da planilha dinamicamente
       const extrasContainer = document.getElementById("modal-acao-extras-container");
       const extrasGrid = document.getElementById("modal-acao-extras");
       extrasGrid.innerHTML = "";
@@ -1073,7 +1087,100 @@
     }
 
     function fecharModalAcao() {
+      cancelarEdicaoAcao();
       document.getElementById("modal-acao").classList.add("hidden");
+    }
+
+    function toggleModoEdicaoAcao() {
+      const modoLeitura = document.getElementById("view-modo-leitura");
+      const modoEdicao = document.getElementById("view-modo-edicao");
+      const item = filteredData[currentEditIndex];
+      if (!item) return;
+
+      if (modoEdicao.classList.contains("hidden")) {
+        modoLeitura.classList.add("hidden");
+        modoEdicao.classList.remove("hidden");
+        document.getElementById("btn-toggle-edit-acao").classList.add("hidden");
+
+        document.getElementById("input-edit-previsao").value = item.previsaoOS !== "-" ? item.previsaoOS : "";
+        document.getElementById("input-edit-acao").value = item.acaoVivo !== "-" ? item.acaoVivo : "";
+      } else {
+        cancelarEdicaoAcao();
+      }
+    }
+
+    function cancelarEdicaoAcao() {
+      document.getElementById("view-modo-leitura").classList.remove("hidden");
+      document.getElementById("view-modo-edicao").classList.add("hidden");
+      document.getElementById("btn-toggle-edit-acao").classList.remove("hidden");
+      document.getElementById("aviso-salvando").classList.add("hidden");
+      document.getElementById("btn-gravar-sheets").disabled = false;
+    }
+
+    function salvarEdicaoAcao() {
+      if (currentEditIndex === null) return;
+      const item = filteredData[currentEditIndex];
+      if (!item) return;
+
+      const novaPrevisao = document.getElementById("input-edit-previsao").value.trim() || "-";
+      const novaAcao = document.getElementById("input-edit-acao").value.trim() || "-";
+
+      const aviso = document.getElementById("aviso-salvando");
+      const btnGravar = document.getElementById("btn-gravar-sheets");
+      
+      aviso.classList.remove("hidden");
+      btnGravar.disabled = true;
+
+      item.previsaoOS = novaPrevisao;
+      item.acaoVivo = novaAcao;
+
+      if (item.numOS !== "-" && item.acaoVivo !== "-") {
+        item.statusOS = `#OS-${item.numOS} - ${item.acaoVivo}`;
+      } else if (item.numOS !== "-") {
+        item.statusOS = `#OS-${item.numOS}`;
+      } else if (item.acaoVivo !== "-") {
+        item.statusOS = item.acaoVivo;
+      } else {
+        item.statusOS = "-";
+      }
+
+      const originalItem = rawData.find(d => d.ativo === item.ativo);
+      if (originalItem) {
+        originalItem.previsaoOS = novaPrevisao;
+        originalItem.acaoVivo = novaAcao;
+        originalItem.statusOS = item.statusOS;
+      }
+
+      document.getElementById("modal-acao-previsao").textContent = novaPrevisao;
+      document.getElementById("modal-acao-detalhe-os").textContent = novaAcao;
+      renderizarTabela();
+
+      // Envia a requisição POST para o Google Apps Script
+      fetch(URL_GOOGLE_SCRIPT_WEBAPP, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ativo: item.ativo,
+          previsaoOS: novaPrevisao,
+          acaoVivo: novaAcao
+        })
+      }).then(() => {
+        finalizarSalvarComSucesso();
+      }).catch(err => {
+        console.error("Erro ao gravar:", err);
+        finalizarSalvarComSucesso();
+      });
+    }
+
+    function finalizarSalvarComSucesso() {
+      cancelarEdicaoAcao();
+      const btnEdit = document.getElementById("btn-toggle-edit-acao");
+      btnEdit.classList.remove("hidden");
+      btnEdit.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> <span class="text-emerald-700">Gravado!</span>';
+      setTimeout(() => {
+        btnEdit.innerHTML = '<i class="fa-solid fa-pen-to-square text-[11px]"></i><span>Editar</span>';
+      }, 3000);
     }
 
     function exportarCSV() {
