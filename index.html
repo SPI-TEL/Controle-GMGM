@@ -12,9 +12,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   
-  <!-- PapaParse para ler o CSV do Google Sheets -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -74,7 +71,7 @@
               Controle de GMG Portátil - VIVO Rede Móvel
             </h1>
             <span class="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              Gravação Direta no Sheets
+              Tempo Real • Sheets
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5 font-medium">
@@ -545,7 +542,6 @@
   </div>
 
   <script>
-    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSUI4_D7coi0E0CIcT-z13F33y9PIRsh8b0KyKWjnqDURrk4mK_RtORpGnKR1Cay_gyxiAZcUgMyLjH/pub?gid=361876213&single=true&output=csv";
     const URL_GOOGLE_SCRIPT_WEBAPP = "https://script.google.com/macros/s/AKfycbw1fAKcb5F10ufY4gKiYtjm_nGM0Z_tBNqhsX52aRlpIiKsW-NsdaMOskJiU_YZkmYH/exec";
 
     let rawData = [];
@@ -569,33 +565,31 @@
       icon.classList.add("fa-spin");
       spinner.classList.remove("hidden");
       check.classList.add("hidden");
-      msg.textContent = "Sincronizando dados com a folha de cálculo...";
+      msg.textContent = "Sincronizando dados em tempo real com Google Sheets...";
 
-      // Anti-cache na URL do CSV
-      const urlSemCache = `${URL_CSV}&t=${new Date().getTime()}`;
+      fetch(`${URL_GOOGLE_SCRIPT_WEBAPP}?t=${new Date().getTime()}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.status === "erro") {
+            throw new Error(data.mensagem);
+          }
 
-      Papa.parse(urlSemCache, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          processarDados(results.data);
-          
+          processarDados(data);
+
           icon.classList.remove("fa-spin");
           spinner.classList.add("hidden");
           check.classList.remove("hidden");
-          msg.textContent = "Dados atualizados com sucesso da folha de cálculo Google Sheets.";
-          
+          msg.textContent = "Dados sincronizados em tempo real com Google Sheets.";
+
           const now = new Date();
           document.getElementById("sync-time").textContent = now.toLocaleTimeString('pt-BR');
-        },
-        error: function(err) {
-          console.error("Erro ao carregar CSV:", err);
+        })
+        .catch(err => {
+          console.error("Erro ao carregar dados:", err);
           icon.classList.remove("fa-spin");
           spinner.classList.add("hidden");
-          msg.textContent = "Erro ao conectar com a folha de cálculo online.";
-        }
-      });
+          msg.textContent = "Erro ao conectar com a folha de cálculo online: " + err.message;
+        });
     }
 
     function converterLinkDriveParaImagem(url) {
@@ -1158,7 +1152,6 @@
       aviso.classList.remove("hidden");
       btnGravar.disabled = true;
 
-      // Dispara envio POST para a URL do Google Apps Script
       fetch(URL_GOOGLE_SCRIPT_WEBAPP, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1172,7 +1165,6 @@
       .then(response => response.json())
       .then(res => {
         if (res.status === "sucesso") {
-          // Atualiza o item localmente após confirmação da planilha
           const norm = normalizarSituacao(novaSituacao);
           item.situacao = norm.situacao;
           item.ehDescarte = norm.ehDescarte;
@@ -1198,13 +1190,11 @@
             originalItem.statusOS = item.statusOS;
           }
 
-          // Atualiza o modal
           atualizarBadgeSituacaoModal(item.situacao);
           document.getElementById("modal-acao-previsao").textContent = novaPrevisao;
           document.getElementById("modal-acao-detalhe-os").textContent = novaAcao;
           document.getElementById("modal-acao-sla").textContent = item.situacao === "INOPERANTE" ? `${item.diasInoperante} dias inop.` : "Em dia";
 
-          // Atualiza a tabela, gráficos e KPIs
           atualizarKPIs();
           renderizarGraficoDDD();
           renderizarGraficoKVA();
