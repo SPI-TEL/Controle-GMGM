@@ -471,7 +471,7 @@
                 <textarea id="input-edit-acao" rows="3" placeholder="Ex: Execução Aprovada PEDIDO 161739..." class="w-full text-xs font-medium border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-vivo-purple focus:outline-none bg-slate-50"></textarea>
               </div>
 
-              <div id="aviso-salvando" class="hidden text-[11px] text-amber-600 font-semibold items-center space-x-1">
+              <div id="aviso-salvando" class="hidden text-[11px] text-amber-600 font-semibold flex items-center space-x-1">
                 <i class="fa-solid fa-circle-notch fa-spin"></i>
                 <span>Gravando na folha de cálculo Google Sheets...</span>
               </div>
@@ -571,7 +571,10 @@
       check.classList.add("hidden");
       msg.textContent = "Sincronizando dados com a folha de cálculo...";
 
-      Papa.parse(URL_CSV, {
+      // Anti-cache na URL do CSV
+      const urlSemCache = `${URL_CSV}&t=${new Date().getTime()}`;
+
+      Papa.parse(urlSemCache, {
         download: true,
         header: true,
         skipEmptyLines: true,
@@ -1155,60 +1158,68 @@
       aviso.classList.remove("hidden");
       btnGravar.disabled = true;
 
-      // Atualiza o item localmente
-      const norm = normalizarSituacao(novaSituacao);
-      item.situacao = norm.situacao;
-      item.ehDescarte = norm.ehDescarte;
-      item.previsaoOS = novaPrevisao;
-      item.acaoVivo = novaAcao;
-
-      if (item.numOS !== "-" && item.acaoVivo !== "-") {
-        item.statusOS = `#OS-${item.numOS} - ${item.acaoVivo}`;
-      } else if (item.numOS !== "-") {
-        item.statusOS = `#OS-${item.numOS}`;
-      } else if (item.acaoVivo !== "-") {
-        item.statusOS = item.acaoVivo;
-      } else {
-        item.statusOS = "-";
-      }
-
-      const originalItem = rawData.find(d => d.ativo === item.ativo);
-      if (originalItem) {
-        originalItem.situacao = item.situacao;
-        originalItem.ehDescarte = item.ehDescarte;
-        originalItem.previsaoOS = novaPrevisao;
-        originalItem.acaoVivo = novaAcao;
-        originalItem.statusOS = item.statusOS;
-      }
-
-      // Atualiza o modal
-      atualizarBadgeSituacaoModal(item.situacao);
-      document.getElementById("modal-acao-previsao").textContent = novaPrevisao;
-      document.getElementById("modal-acao-detalhe-os").textContent = novaAcao;
-      document.getElementById("modal-acao-sla").textContent = item.situacao === "INOPERANTE" ? `${item.diasInoperante} dias inop.` : "Em dia";
-
-      // Atualiza a tabela, gráficos e KPIs
-      atualizarKPIs();
-      renderizarGraficoDDD();
-      renderizarGraficoKVA();
-      renderizarTabela();
-
       // Dispara envio POST para a URL do Google Apps Script
       fetch(URL_GOOGLE_SCRIPT_WEBAPP, {
         method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           ativo: item.ativo,
-          situacao: item.situacao,
+          situacao: novaSituacao,
           previsaoOS: novaPrevisao,
           acaoVivo: novaAcao
         })
-      }).then(() => {
-        finalizarSalvarComSucesso();
-      }).catch(err => {
+      })
+      .then(response => response.json())
+      .then(res => {
+        if (res.status === "sucesso") {
+          // Atualiza o item localmente após confirmação da planilha
+          const norm = normalizarSituacao(novaSituacao);
+          item.situacao = norm.situacao;
+          item.ehDescarte = norm.ehDescarte;
+          item.previsaoOS = novaPrevisao;
+          item.acaoVivo = novaAcao;
+
+          if (item.numOS !== "-" && item.acaoVivo !== "-") {
+            item.statusOS = `#OS-${item.numOS} - ${item.acaoVivo}`;
+          } else if (item.numOS !== "-") {
+            item.statusOS = `#OS-${item.numOS}`;
+          } else if (item.acaoVivo !== "-") {
+            item.statusOS = item.acaoVivo;
+          } else {
+            item.statusOS = "-";
+          }
+
+          const originalItem = rawData.find(d => d.ativo === item.ativo);
+          if (originalItem) {
+            originalItem.situacao = item.situacao;
+            originalItem.ehDescarte = item.ehDescarte;
+            originalItem.previsaoOS = novaPrevisao;
+            originalItem.acaoVivo = novaAcao;
+            originalItem.statusOS = item.statusOS;
+          }
+
+          // Atualiza o modal
+          atualizarBadgeSituacaoModal(item.situacao);
+          document.getElementById("modal-acao-previsao").textContent = novaPrevisao;
+          document.getElementById("modal-acao-detalhe-os").textContent = novaAcao;
+          document.getElementById("modal-acao-sla").textContent = item.situacao === "INOPERANTE" ? `${item.diasInoperante} dias inop.` : "Em dia";
+
+          // Atualiza a tabela, gráficos e KPIs
+          atualizarKPIs();
+          renderizarGraficoDDD();
+          renderizarGraficoKVA();
+          renderizarTabela();
+
+          finalizarSalvarComSucesso();
+        } else {
+          alert("Erro ao gravar na planilha: " + (res.mensagem || "Erro desconhecido"));
+          cancelarEdicaoAcao();
+        }
+      })
+      .catch(err => {
         console.error("Erro ao gravar:", err);
-        finalizarSalvarComSucesso();
+        alert("Falha de conexão com o Google Apps Script. Verifique se a implantação foi publicada como 'Qualquer pessoa'.");
+        cancelarEdicaoAcao();
       });
     }
 
